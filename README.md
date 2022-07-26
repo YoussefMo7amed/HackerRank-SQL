@@ -1,9 +1,9 @@
 # HackerRank SQL Problems
-![HackerRank Logo](./readme/HackerRank.png)
+![HackerRank Logo](./readme/HackerRank-logo.png)
 
 All solutions are solved in MySQL DBMS.
 
-![](./readme/mysql.png)
+![](./readme/mysql-logo.png)
 
 The solutions are categorized by level of difficulty
 Problems in HackerRank: [SQL](https://www.hackerrank.com/domains/sql)
