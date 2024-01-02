@@ -1,44 +1,55 @@
-select
-    (
-        case
-            when occupation like 'Doctor'
-            then name
-        end
-    ) as Doctor,
-    (
-        case
-            when occupation like 'Professor'
-            then name
-        end
-    ) as Professor,
-    (
-        case
-            when occupation like 'Singer'
-            then name
-        end
-    ) as Singer,
-    (
-        case
-            when occupation like 'Actor'
-            then name
-        end
-    ) as Actor
-from occupations
+SELECT
+    MAX(CASE WHEN Occupation = 'Doctor' THEN Name END) AS Doctor,
+    MAX(CASE WHEN Occupation = 'Professor' THEN Name END) AS Professor,
+    MAX(CASE WHEN Occupation = 'Singer' THEN Name END) AS Singer,
+    MAX(CASE WHEN Occupation = 'Actor' THEN Name END) AS Actor
+FROM (
+    SELECT
+        Name,
+        Occupation,
+        ROW_NUMBER() OVER (PARTITION BY Occupation ORDER BY Name) AS RowNum
+    FROM
+        Occupations
+) AS NumberedOccupations
+GROUP BY
+    RowNum
+ORDER BY
+    RowNum;
 
-/*
-set @r1=0, @r2=0, @r3=0, @r4=0;
-select min(Doctor), min(Professor), min(Singer), min(Actor)
-from(
-  select case when Occupation='Doctor' then (@r1:=@r1+1)
-            when Occupation='Professor' then (@r2:=@r2+1)
-            when Occupation='Singer' then (@r3:=@r3+1)
-            when Occupation='Actor' then (@r4:=@r4+1) end as RowNumber,
-    case when Occupation='Doctor' then Name end as Doctor,
-    case when Occupation='Professor' then Name end as Professor,
-    case when Occupation='Singer' then Name end as Singer,
-    case when Occupation='Actor' then Name end as Actor
-  from OCCUPATIONS
-  order by Name
-	) temp
-group by RowNumber;
+/* explination:
+
+1. ROW_NUMBER() Function:
+   ```sql
+   ROW_NUMBER() OVER (PARTITION BY Occupation ORDER BY Name) AS RowNum
+   ```
+   This part of the query uses the `ROW_NUMBER()` window function. It assigns a unique row number to each row within its occupation group, ordered by the person's name. The `PARTITION BY Occupation` ensures that the numbering restarts for each occupation.
+
+2. Derived Table (NumberedOccupations):
+   ```sql
+   SELECT
+       Name,
+       Occupation,
+       RowNum
+   FROM
+       Occupations
+   ```
+   This subquery selects the `Name`, `Occupation`, and `RowNum` from the `Occupations` table, using the `ROW_NUMBER()` function to generate the row numbers.
+
+3. Pivoting with Conditional Aggregation:
+   ```sql
+   SELECT
+       MAX(CASE WHEN Occupation = 'Doctor' THEN Name END) AS Doctor,
+       MAX(CASE WHEN Occupation = 'Professor' THEN Name END) AS Professor,
+       MAX(CASE WHEN Occupation = 'Singer' THEN Name END) AS Singer,
+       MAX(CASE WHEN Occupation = 'Actor' THEN Name END) AS Actor
+   FROM NumberedOccupations
+   GROUP BY RowNum
+   ```
+   This part of the query uses conditional aggregation to pivot the data. The `CASE WHEN` statements are used to conditionally select the `Name` for each occupation. The `MAX` function is then used to aggregate these values for each `RowNum`, effectively transposing the data from rows to columns.
+
+4. Final Result:
+   The result is a table where each row represents a unique `RowNum` (corresponding to a unique combination of occupations), and the columns represent the names of individuals in each occupation.
+
+In summary, the solution utilizes the `ROW_NUMBER()` function to assign row numbers to individuals within their occupation groups and then uses conditional aggregation to pivot the data, resulting in the desired output.
+
 */
